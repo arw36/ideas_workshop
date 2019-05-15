@@ -7,7 +7,7 @@
 library(tidyverse)
 
 #load data
-wnv <- read.csv("wnv.csv")
+wnv <- read.csv("data/wnv.csv")
 
 # Histogram of WNV cases by state by year
 g <- ggplot(wnv, aes(Year)) + 

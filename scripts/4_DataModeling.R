@@ -9,7 +9,7 @@ library(magrittr)
 library(viridis)
 
 # Task 1: load data 
-load("lyme.RData")
+load("data/lyme.RData")
 
 # Task 2: 
 ggpairs(all.dfs, columns=c("prcp", "avtemp", "size", "cases"))

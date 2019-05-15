@@ -8,7 +8,7 @@ library(tidyverse)
 library(ggridges)
 
 #load data
-mers <- read.csv('cases.csv')
+mers <- read.csv('data/cases.csv')
 
 
 # correct errors

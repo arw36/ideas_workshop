@@ -10,9 +10,9 @@ library(maps)
 library(magrittr)
 
 # Task 1: load data 
-ld <- read_csv(file = "lyme.csv")
-pop <- read_csv(file = "pop.csv")
-prism <- read_csv(file = "climate.csv")
+ld <- read_csv(file = "data/lyme.csv")
+pop <- read_csv(file = "data/pop.csv")
+prism <- read_csv(file = "data/climate.csv")
 
 # Task 2: which ways does the data fail to conform to tidy? 
 # pop is not tidy as there are multiple rows for the same county, with separate date (eg. 1970-2013 population on one row, then 2014+ data on)
@@ -85,8 +85,8 @@ cases_by_state_year <- ld %>% ungroup %>% group_by(year, state) %>%
 # Conneticut, Massachusetts, New Jersey
 
 # save data 
-# save(ld, prism, pop, all.dfs, cases_by_state_year, cases_by_year, file = "lyme.RData")
-# write_csv(all.dfs,"lyme_combined.csv")
+save(ld, prism, pop, all.dfs, cases_by_state_year, cases_by_year, file = "data/lyme.RData")
+write_csv(all.dfs,"data/lyme_combined.csv")
 
 
 # make a map 
