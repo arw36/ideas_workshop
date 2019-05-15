@@ -1,0 +1,206 @@
+---
+title: "MERS Report"
+author: Anna Willoughby
+date: May 15, 2019
+output: html_document
+---
+
+## IDEAS Scientific Programming Workshop, Module 5
+
+### Visualization of Global MERS Cases
+
+This report contains analysis and visualization of Middle East Respiratory Syndrome Coronavirus (MERS-CoV) cases from Andrew Rambaut's publicly available github (https://github.com/rambaut/MERS-Cases/blob/gh-pages/data/cases.csv). 
+
+```{r setup, include=FALSE, warning=FALSE, message = FALSE}
+library(lubridate)
+library(tidyverse)
+library(ggridges)
+```
+
+The dataset is actually quite messy, requiring us to do some cleaning. Here we correct for different date types.
+
+```{r data load and clean, warning = FALSE}
+mers <- read.csv('data/cases.csv') #load data
+
+# correct errors
+mers$hospitalized[890] <- c('2015-02-20')
+mers <- mers[-417,]
+mers$onset2 <- ymd(mers$onset)
+mers$hospitalized2 <- ymd(mers$hospitalized)
+```
+
+
+An important variable for infectious disease dynamics is the length of the epidemic. We will calculate the day since epidemic onset for each case, `epi.day`. 
+
+
+```{r epi day calculation, warning = FALSE}
+# calculate days from onset of epidemic 
+day0 <- min(na.omit(mers$onset2)) 
+# Q1 would get errors for na, as many rows without onset date
+mers$epi.day <- as.numeric(mers$onset2 - day0) # create epidemic day value 
+# Q2 changes the class from diff in time to a numeric
+```
+
+Now that our data is formatted, we can visualise several different relationships. Here we use the `ggplot` package to 
+show how cases a distributed by date and country. 
+
+```{r epi day plot 1, warning = FALSE}
+# Plot 
+ggplot(data=mers) + 
+  geom_bar(aes(x=epi.day, fill = country)) + 
+  labs(x  = 'Epidemic day', y = 'Case count', 
+  title = 'Global count of MERS cases by date of symptom onset', 
+  caption = "Data from: https://github.com/rambaut/MERS-Cases/blob/gh-pages/data/cases.csv") 
+```
+
+
+## Univariate Plots 
+
+To explore some other plot types, we will calculate the _infectious period_, the duration of infectiousness for a patient. From an epidemiological point of view, this may often be approximated as the time between the onset of symptoms and the time of death, hospitalization, or isolation.
+
+```{r calc infectious period, warning=FALSE}
+mers$infectious.period <- mers$hospitalized2-mers$onset2 #calculate "raw" infectious period 
+```
+
+We can plot the distribution of MERS infectious period using a histogram. Before we plot, we need to revisit are calculation of infectious period, as this value may be misleading. In some cases the main source of transmission has been nosocomial (infections in a health care setting). This appears in our data as a negative time interval between onset and hospitalization. Perhaps we would wish to calculate a new value, which is the calculated infectious period in the case where it is positive and zero otherwise. To do this, we rely on the handy function ifelse.
+
+```{r histo plot, warning = FALSE, message = FALSE}
+# Histogram plot
+mers$infectious.period2 <- ifelse(mers$infectious.period < 0 , 0, mers$infectious.period)
+ggplot(data = mers)+
+  geom_histogram(aes(x=infectious.period2)) +
+  labs(x = 'Infectious period', y = 'Frequency', 
+       title = 'Distribution of calculated MERS infectious period (positive values only)', 
+       caption = "Data from: https://github/rambaut/MERS-cases/blob/gh-pages/data/cases.csv")
+```
+
+
+We can display this in other ways as well, such as a density plot: 
+
+```{r density plot, warning = FALSE, message = FALSE}
+# Density plot
+ggplot(data = mers)+
+  geom_density(aes(x=infectious.period2)) +
+  labs(x = 'Infectious period', y = 'Frequency', 
+       title = 'Distribution of calculated MERS infectious period (positive values only)', 
+       caption = "Data from: https://github/rambaut/MERS-cases/blob/gh-pages/data/cases.csv")
+```
+
+or an area plot: 
+
+```{r area plot, warning = FALSE, message = FALSE}
+# Area plot
+ggplot(data = mers)+
+  geom_area(stat = 'bin', aes(x=infectious.period2)) +
+  labs(x = 'Infectious period', y = 'Frequency', 
+       title = 'Distribution of calculated MERS infectious period (positive values only)', 
+       caption = "Data from: https://github/rambaut/MERS-cases/blob/gh-pages/data/cases.csv")
+```
+or a dot plot: 
+
+```{r dot plot, warning = F}
+# Exercise 3 
+ggplot(mers, aes(x=infectious.period2, fill = country))+
+  geom_dotplot(binaxis = "x", stackdir = "up", dotsize = 0.5) +
+  labs(x = 'Infectious period', y = 'Frequency', 
+       title = 'Distribution of calculated MERS infectious period (positive values only)', 
+       caption = "Data from: https://github/rambaut/MERS-cases/blob/gh-pages/data/cases.csv")
+
+# Exercise 4 
+ggplot(mers, aes(y = infectious.period2, x = epi.day)) +
+         geom_point(aes(colour = country))
+
+
+# Exercise 5, add a smooth curve fit for the total data
+ggplot(mers, aes(y = infectious.period2, x = epi.day)) +
+  geom_point(aes(colour = country)) + geom_smooth(method = "loess")
+
+# Exercise 6, plot infect period against time with smooth by country
+ggplot(mers, aes(y = infectious.period2, x = epi.day)) +
+  geom_point(aes(colour = country)) + 
+  geom_smooth(aes(group = country, colour = country), method = "loess")
+```
+
+# Faceting 
+
+Faceting is the process of adding multi-panel plots. In this example we will facet by country. 
+
+```{r facet plot, warning = FALSE}
+
+ggplot(mers, aes( x = epi.day, y = infectious.period2)) +
+  geom_point(aes(colour = country)) + 
+  facet_wrap(~country) + 
+  scale_y_continuous(limits = c(0,50)) +
+  labs(x = 'Epidemic Day', y = 'Infectious period', 
+       title = 'MERS infectious period (positive values only) over time', 
+       caption = "Data from: https://github/rambaut/MERS-cases/blob/gh-pages/data/cases.csv")
+
+ggplot(subset(mers, gender %in% c('M', 'F') & country %in% c('KSA', 'Oman', 'Iran', 'Jordan', 'Qatar', 'South Korea', 'UAE'))) +
+  geom_point(aes(x = epi.day, y = infectious.period2, colour = country)) +
+  facet_grid(gender ~ country) + 
+  scale_y_continuous(limits = c(0,50)) +
+  labs(x = 'Epidemic Day', y = 'Infectious period', 
+        title = 'MERS infectious period by gender and country', 
+        caption = "Data from: https://github/rambaut/MERS-cases/blob/gh-pages/data/cases.csv")
+```
+
+Here we will study the case fatality rate: the fraction of cases that end in death. 
+
+```{r case fatality, warning = FALSE}
+# Exercise 7, study variation in case fatality rate (the fraction of cases that end in death) over time and across countries 
+mers$case_died <- ifelse(mers$outcome %in% c("?fatal", "fatal", "fatal?"), "Yes", "No")
+
+
+cf_plot <- ggplot(mers) +
+  geom_bar(aes(x = epi.day, colour = case_died), position = "fill") + 
+  facet_wrap(~country) + 
+  scale_y_continuous(limits = c(0,1)) +
+  scale_colour_manual(values = c( "blue", "red")) +
+  labs(x = 'Epidemic Day', y = 'Case fatality', 
+       title = 'MERS case fatality over time by country', 
+       caption = "Data from: https://github/rambaut/MERS-cases/blob/gh-pages/data/cases.csv")
+cf_plot
+
+mers_country <- mers %>% group_by(country, epi.day, case_died) %>% summarise(cases = n())
+mers_country <- spread(mers_country, key = case_died, value = cases)
+mers_country$Yes <- ifelse(is.na(mers_country$Yes) == TRUE, 0, mers_country$Yes)
+mers_country$No <- ifelse(is.na(mers_country$No) == TRUE, 0, mers_country$No)
+mers_country$case.fatality <- mers_country$Yes / (mers_country$Yes + mers_country$No)
+
+```
+
+For the next exercise, we need to use the a ggplot extension. I've chosen to use the `ggridges` package. `ggridges` provides visualizations ideal for our variable of interest, `epi.day`.
+
+```{r original plots, warning=FALSE}
+# Exercise 8:
+cf2_plot <- ggplot(mers_country, aes(x = epi.day, y = country, fill = case.fatality)) + 
+  geom_density_ridges() +
+  scale_fill_continuous() # values are not currently colored
+cf2_plot
+
+cf_plot2 <- ggplot(mers, aes(x = epi.day, y = country, fill = case_died)) + 
+  geom_density_ridges_gradient() +
+  scale_fill_manual(values = c("blue", "red"))
+cf_plot2 
+```
+
+
+We can make these plots interactive, using the `plotly` package.  
+
+
+```{r an interactive version, warning=FALSE, message = FALSE}
+# Use plotly
+library(plotly)
+epi.curve <- ggplot(mers)+ 
+  geom_bar(aes(x = epi.day)) +
+  labs(x = 'Epidemic day', y = 'Case count', title ='Global count of MERS cases by date of symptoms onset', 
+       caption = "Data from: https://github/rambaut/MERS-cases/blob/gh-pages/data/cases.csv")
+ggplotly(epi.curve)
+
+# Exercise 9 
+ggplotly(cf_plot)
+```
+
+
+
+
