@@ -1,9 +1,5 @@
 ### R code from vignette source 'pulsed-vaccination.rnw'
-### Encoding: UTF-8
 
-###################################################
-### code chunk number 1: pulsed-vaccination.rnw:76-93
-###################################################
 require(deSolve)                          #deSolve library needed for this computing session
 
 sir.model.open <- function (t, x, params) {    #here we begin a function with three arguments
@@ -22,10 +18,6 @@ sir.model.open <- function (t, x, params) {    #here we begin a function with th
        )
 }
 
-
-###################################################
-### code chunk number 2: parameters
-###################################################
 R0 <- 10
 N <-  1					                       #population size
 mu <- 0.02                             #per capita birth/death rate
@@ -37,48 +29,24 @@ params <- c(beta=beta, gamma=gamma, mu=mu)  #parameter vector
 tau <- 0.1                             #size of time step
 times <- seq(0, Tmax, by=tau)          #function seq returns a sequence
 
-
-###################################################
-### code chunk number 3: pulsed-vaccination.rnw:113-114
-###################################################
 out <- ode(xstart,times,sir.model.open,params, method='ode45', rtol=1e-7)  
 
-
-###################################################
-### code chunk number 4: pulsed-vaccination.rnw:119-124
-###################################################
 op <- par(fig=c(0,0.5,0,1),mar=c(4,4,1,1))                      #set graphical parameters
 plot(I~time,data=out, type='l', lwd=2)                          #plot the I variable against time
 par(fig=c(0.5,1,0,1),mar=c(4,1,1,1),new=T)                      #re-set graphical parameters
 plot(I~S,data=out,log='xy',yaxt='n',xlab='S', type='l', lwd=2)  #plot phase portrait
 par(op)                                                         #re-set graphical parameters
 
-
-###################################################
-### code chunk number 5: reset-parameters
-###################################################
 xstart <- out[which(out[,1]==50),2:4] # start pulsed vaccination strategies once initial system reached equilibrium
 
-
-###################################################
-### code chunk number 6: new-parameters
-###################################################
 pv <- 0.1                     # fraction of susceptibles vaccinated
 Tv <- 4                       # number of years between pulses
 vacc.events <- floor(Tmax/Tv) # number of pulses in Tmax years
 
-
-###################################################
-### code chunk number 7: dataframe
-###################################################
 data <- data.frame(S=out[which(out[,1]==50),2],
                    I=out[which(out[,1]==50),3],
                    R=out[which(out[,1]==50),4])
 
-
-###################################################
-### code chunk number 8: pulsed-vaccination.rnw:155-162
-###################################################
 for(i in 1:vacc.events){
   out <- ode(xstart, seq(tau, Tv, by=tau), sir.model.open, params, method='ode45', rtol=1e-7)
   xstart <- out[dim(out)[1],2:4]        # reset initial condition
@@ -87,10 +55,6 @@ for(i in 1:vacc.events){
   data <- rbind(data,out[,2:4])         # store result
 }
 
-
-###################################################
-### code chunk number 9: plot-vax
-###################################################
 data$time <- seq(50, Tmax+50, by=tau)
 par(mar=c(5,4,4,4)+0.1)
 plot(data$time[1:500], data$I[1:500], type='l', xlab='Time', ylab='', col='red', axes=FALSE)
