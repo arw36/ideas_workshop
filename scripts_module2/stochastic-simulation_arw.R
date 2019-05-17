@@ -3,9 +3,6 @@
 ### Anna Willoughby
 ### May 16, 2019
 
-###################################################
-### code chunk number 1: stochastic-simulation.rnw:70-84
-###################################################
 SI.onestep <- function (x, params) {     #function for one step of the stochastic SI epidemic
    X <- x[2]                             #the second element of x is number of susceptibles X
    Y <- x[3]                             #the third element of x is number of infecteds Y
@@ -21,10 +18,6 @@ SI.onestep <- function (x, params) {     #function for one step of the stochasti
      )
 }
 
-
-###################################################
-### code chunk number 2: stochastic-simulation.rnw:89-98
-###################################################
 SI.model <- function (x, params, nstep) { #function to iterate the stochastic SI for nstep events
   output <- array(dim=c(nstep+1,3))       #set up an array to store all the results
   colnames(output) <- c("time","X","Y")   #name the variables in the array
@@ -35,10 +28,6 @@ SI.model <- function (x, params, nstep) { #function to iterate the stochastic SI
   output                                  #return output
 }
 
-
-###################################################
-### code chunk number 3: stochastic-simulation.rnw:105-122
-###################################################
 set.seed(38499583)                        #set the random seed so results are repeatable
 nsims <- 10                               #number of simulations to run
 pop.size <- 200                           #total size of the population
@@ -91,9 +80,6 @@ plot.SImodel(50,8) #
 # A small population increases the variability.
 # A small number of infected individuals to begin make the epidemic more variable
 
-###################################################
-### code chunk number 4: stochastic-simulation.rnw:138-162
-###################################################
 SIR.onestep <- function (x, params) {  #function to calculate one step of stochastic SIR
   X <- x[2]                            #local variable for susceptibles
   Y <- x[3]                            #local variable for infecteds
@@ -120,10 +106,6 @@ SIR.onestep <- function (x, params) {  #function to calculate one step of stocha
 }
 
 
-###################################################
-### code chunk number 5: stochastic-simulation.rnw:167-177
-###################################################
-
 SIR.model <- function (x, params, nstep) {  #function to simulate stochastic SIR
   output <- array(dim=c(nstep+1,4))         #set up array to store results
   colnames(output) <- c("time","X","Y","Z") #name variables
@@ -134,10 +116,6 @@ SIR.model <- function (x, params, nstep) {  #function to simulate stochastic SIR
   output                                    #return output
 }
 
-
-###################################################
-### code chunk number 6: stochastic-simulation.rnw:182-201
-###################################################
 set.seed(38499583)                #set seed
 nsims <- 10                       #number of simulations
 pop.size <- 100                   #total population size
