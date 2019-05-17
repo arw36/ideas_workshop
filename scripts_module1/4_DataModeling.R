@@ -103,7 +103,6 @@ by_state2 <- all.dfs %>% group_by(state) %>% nest
 # Task 20: Write a function that accepts an element of the by_state2$data list-colmn and 
 # returns the spearman correlation coefficient between Lyme disease cases and preciptiation
 
-
 cortest <- function(df){
   cor.test(df$prcp, df$cases, method = "spearman")$estimate
 }
